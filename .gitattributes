@@ -1,0 +1,3 @@
+# Normalize line endings: LF in the repo and in every checkout, on all
+# platforms. Keeps macOS and Windows working copies byte-identical.
+* text=auto eol=lf

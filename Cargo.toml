@@ -1,0 +1,7 @@
+[workspace]
+resolver = "2"
+members = ["kernel", "xtask"]
+
+# `cargo build` / `cargo test` at the root only touch xtask (a normal host
+# program). The kernel is built for bare metal explicitly, via `cargo xtask`.
+default-members = ["xtask"]

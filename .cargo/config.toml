@@ -1,0 +1,4 @@
+# `cargo xtask <command>` -> runs the build/run orchestrator in xtask/.
+# Everything you do with the OS goes through it.
+[alias]
+xtask = "run --package xtask --"
