@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  boot-test:
+    name: headless boot test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Installs exactly what rust-toolchain.toml pins, including the
+      # x86_64-unknown-none target and the rust-src / llvm-tools components.
+      - name: Install pinned Rust toolchain
+        run: |
+          rustup toolchain install
+          rustup show
+
+      # Caches the cargo registry and target/, including the slow one-time
+      # build of the bootloader stages.
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86
+
+      - name: Boot PeekOS and check it came up
+        run: cargo xtask test

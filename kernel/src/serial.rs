@@ -12,6 +12,15 @@ use spin::Mutex;
 /// COM1. (The other legacy ports are 0x2F8, 0x3E8, 0x2E8.)
 const COM1: u16 = 0x3F8;
 
+// 16550 register offsets from `base`. `base + 0` is the data register — and,
+// while DLAB (bit 7 of the line-control register) is set, the low byte of the
+// baud-rate divisor.
+const REG_INT_ENABLE: u16 = 1; // doubles as the divisor high byte while DLAB=1
+const REG_FIFO_CTRL: u16 = 2;
+const REG_LINE_CTRL: u16 = 3;
+const REG_MODEM_CTRL: u16 = 4;
+const REG_LINE_STATUS: u16 = 5;
+
 /// The one serial port, behind a lock so the print macros work from anywhere.
 /// Brought up once by [`init`].
 static SERIAL: Mutex<Uart> = Mutex::new(Uart::new(COM1));
@@ -28,22 +37,23 @@ impl Uart {
 
     /// Standard 16550 bring-up: 38400 baud, 8 data bits, no parity, 1 stop bit.
     fn init(&mut self) {
+        let b = self.base;
         unsafe {
-            outb(self.base + 1, 0x00); // disable UART interrupts for now
-            outb(self.base + 3, 0x80); // DLAB = 1: next two writes set the divisor
-            outb(self.base + 0, 0x03); // divisor low  = 3  ->  115200 / 3 = 38400 baud
-            outb(self.base + 1, 0x00); // divisor high = 0
-            outb(self.base + 3, 0x03); // DLAB = 0, 8 bits / no parity / 1 stop
-            outb(self.base + 2, 0xC7); // enable + clear FIFOs, 14-byte trigger
-            outb(self.base + 4, 0x0B); // DTR + RTS + OUT2 (OUT2 gates IRQs later)
+            outb(b + REG_INT_ENABLE, 0x00); // no UART interrupts for now
+            outb(b + REG_LINE_CTRL, 0x80);  // DLAB = 1: b+0 and b+1 are the divisor
+            outb(b, 0x03);                  // divisor low  = 3  ->  115200 / 3 = 38400 baud
+            outb(b + REG_INT_ENABLE, 0x00); // divisor high = 0
+            outb(b + REG_LINE_CTRL, 0x03);  // DLAB = 0, 8 data bits, no parity, 1 stop bit
+            outb(b + REG_FIFO_CTRL, 0xC7);  // enable + clear FIFOs, 14-byte trigger
+            outb(b + REG_MODEM_CTRL, 0x0B); // DTR + RTS + OUT2 (OUT2 gates the IRQ line)
         }
     }
 
     fn write_byte(&mut self, byte: u8) {
         unsafe {
-            // Line-status register (base + 5), bit 5 = "transmit holding
-            // register empty". Spin until the UART can accept another byte.
-            while inb(self.base + 5) & 0x20 == 0 {}
+            // Bit 5 of the line-status register = "transmit holding register
+            // empty". Spin until the UART can accept another byte.
+            while inb(self.base + REG_LINE_STATUS) & 0x20 == 0 {}
             outb(self.base, byte);
         }
     }
