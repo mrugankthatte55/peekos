@@ -5,3 +5,8 @@ edition = "2021"
 publish = false
 
 [dependencies]
+# Turns the kernel ELF into a bootable disk image. Building this crate also
+# compiles the actual bootloader stages from source — slow on first build.
+# BIOS only for now: the UEFI stage pulls in a transitive dep that fails to
+# link on current nightly, and QEMU boots the BIOS image just fine.
+bootloader = { version = "0.11", default-features = false, features = ["bios"] }

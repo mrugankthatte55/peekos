@@ -12,3 +12,6 @@ bench = false
 # Just the interface the bootloader hands the kernel (entry point + BootInfo).
 # The bootloader implementation itself is pulled in by xtask, not here.
 bootloader_api = "0.11"
+# A spinlock Mutex that works with no OS underneath — used for the global
+# serial port so the print macros can be called from anywhere.
+spin = "0.9"
