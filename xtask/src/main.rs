@@ -14,7 +14,8 @@ use std::process::{Command, ExitCode};
 const KERNEL_TARGET: &str = "x86_64-unknown-none";
 
 fn main() -> ExitCode {
-    match std::env::args().nth(1).as_deref() {
+    let args: Vec<String> = std::env::args().collect();
+    match args.get(1).map(String::as_str) {
         Some("build") => match build_kernel() {
             Ok(elf) => {
                 report_elf(&elf);
@@ -22,7 +23,10 @@ fn main() -> ExitCode {
             }
             Err(()) => ExitCode::FAILURE,
         },
-        Some("run") => run(),
+        // `--gui` opens QEMU's window (you see the bootloader draw to the
+        // framebuffer); without it QEMU runs headless and only the serial
+        // console comes back to this terminal.
+        Some("run") => run(args.iter().any(|a| a == "--gui")),
         Some(other) => usage(&format!("unknown command: {other}")),
         None => usage("no command given"),
     }
@@ -30,7 +34,8 @@ fn main() -> ExitCode {
 
 fn usage(problem: &str) -> ExitCode {
     eprintln!("xtask: {problem}");
-    eprintln!("usage: cargo xtask <build|run>");
+    eprintln!("usage: cargo xtask build");
+    eprintln!("       cargo xtask run [--gui]");
     ExitCode::FAILURE
 }
 
@@ -54,7 +59,7 @@ fn build_kernel() -> Result<PathBuf, ()> {
 }
 
 /// Build a BIOS disk image from the kernel and boot it in QEMU.
-fn run() -> ExitCode {
+fn run(gui: bool) -> ExitCode {
     let Ok(kernel) = build_kernel() else {
         return ExitCode::FAILURE;
     };
@@ -71,20 +76,18 @@ fn run() -> ExitCode {
     // QEMU on Windows is happier with forward slashes inside -drive.
     let image_arg = format!("format=raw,file={}", image.to_string_lossy().replace('\\', "/"));
 
-    // No display: the kernel only speaks over serial right now, and the
-    // framebuffer is a black rectangle until we draw to it. A window comes
-    // back (behind a flag) once there are pixels worth showing.
-    println!("xtask: booting QEMU - serial output below, Ctrl+C to quit\n");
-    let launched = Command::new("qemu-system-x86_64")
-        .args([
-            "-drive", &image_arg,
-            "-serial", "stdio",
-            "-display", "none",
-            "-no-reboot",
-        ])
-        .status();
+    let mut qemu = Command::new("qemu-system-x86_64");
+    qemu.args(["-drive", &image_arg, "-serial", "stdio", "-no-reboot"]);
+    if gui {
+        println!("xtask: booting QEMU in a window - serial also mirrored below, Ctrl+C to quit\n");
+    } else {
+        // Headless: the kernel only speaks over serial right now, and the
+        // framebuffer is a black rectangle once our kernel takes over anyway.
+        qemu.args(["-display", "none"]);
+        println!("xtask: booting QEMU headless - serial output below, Ctrl+C to quit\n");
+    }
 
-    match launched {
+    match qemu.status() {
         Ok(_) => ExitCode::SUCCESS, // QEMU's exit code isn't meaningful to us yet
         Err(e) => {
             eprintln!("xtask: could not launch qemu-system-x86_64: {e}");
