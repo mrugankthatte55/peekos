@@ -12,9 +12,11 @@ for what it is and why.
 
 ## Usage
 
-    cargo xtask build     # compile the kernel for x86_64-unknown-none
+    cargo xtask build       # compile the kernel for x86_64-unknown-none
+    cargo xtask run         # boot it in QEMU (headless; serial to this terminal)
+    cargo xtask run --gui   # ...with a QEMU window as well
 
-More commands (`run`, `test`) arrive as the project grows.
+More commands (`test`) arrive as the project grows.
 
 ## Layout
 
@@ -22,4 +24,9 @@ More commands (`run`, `test`) arrive as the project grows.
 |------|------|
 | `kernel/` | the OS itself (`#![no_std]`, boots on `x86_64-unknown-none`) |
 | `xtask/`  | build & run orchestrator, runs on the host |
-| `docs/`   | design notes |
+| `docs/`   | [design](docs/design.md) and [workflow](docs/workflow.md) notes |
+
+## Contributing
+
+Branch and pull-request conventions live in [docs/workflow.md](docs/workflow.md).
+`develop` is the working branch; `main` is a stable backup.
