@@ -8,6 +8,11 @@ name = "kernel"
 test = false
 bench = false
 
+[features]
+# Enabled by `cargo xtask test`: on a clean boot the kernel asks QEMU to exit
+# (via the isa-debug-exit device) instead of halting, so CI can check the code.
+boot-test = []
+
 [dependencies]
 # Just the interface the bootloader hands the kernel (entry point + BootInfo).
 # The bootloader implementation itself is pulled in by xtask, not here.

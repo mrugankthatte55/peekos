@@ -10,3 +10,6 @@ publish = false
 # BIOS only for now: the UEFI stage pulls in a transitive dep that fails to
 # link on current nightly, and QEMU boots the BIOS image just fine.
 bootloader = { version = "0.11", default-features = false, features = ["bios"] }
+# Wait on the QEMU process with a timeout, so `xtask test` fails a hung boot
+# instead of blocking CI forever.
+wait-timeout = "0.2"
