@@ -6,8 +6,9 @@
   lands here first.
 - **`main`** — stable backup. Advances only when `develop` is deliberately
   merged into it (a manual decision, no schedule). Every such merge is tagged.
-- **`feature/*`** / **`increment/N-*`** — cut from `develop`, one per unit of
-  work, squash-merged back into `develop` via pull request, then deleted.
+- **`feature/*`** — cut from `develop`, one per unit of work, squash-merged
+  back into `develop` via pull request, then deleted. (`fix/*`, `spike/*` for
+  the obvious other cases.)
 
 Release branches are not used yet. They will be introduced the first time
 PeekOS has a real release to stabilise, and at that point they *will* merge
@@ -16,9 +17,9 @@ back into `develop` and `main`.
 ## Day to day
 
     git switch develop && git pull
-    git switch -c increment/3-ci
+    git switch -c feature/ci
     # ...work, commit...
-    git push -u origin increment/3-ci
+    git push -u origin feature/ci
     gh pr create --base develop
     # CI runs, review the diff, then:
     gh pr merge --squash --delete-branch
@@ -44,7 +45,7 @@ points. To work from one:
 - Force-pushes and branch deletion are blocked on both.
 - `develop` keeps a linear history (squash merges); `main` records `develop`
   merges as merge commits.
-- CI must pass before a merge (wired up in increment 3).
+- CI must pass before a merge (added alongside the boot test).
 
 ## Commits
 

@@ -2,7 +2,7 @@
 # compiler. Bump deliberately, not incidentally.
 #
 # Why nightly: the `x86-interrupt` calling convention, needed for CPU interrupt
-# handlers a few increments from now, is still unstable.
+# handlers later on, is still unstable.
 [toolchain]
 channel = "nightly-2026-08-29"
 components = ["rust-src", "llvm-tools", "clippy", "rustfmt"]

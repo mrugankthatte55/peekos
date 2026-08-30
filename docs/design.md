@@ -7,7 +7,7 @@ understood. During development it runs only under emulation (QEMU), never on
 real hardware.
 
 It is a learning project first. The goal is not to ship a product — it is to
-build, by hand and incrementally, enough of a real OS to understand how one
+build, by hand and in small steps, enough of a real OS to understand how one
 works, and to end up with an artifact small and coherent enough to hold in
 your head.
 
@@ -37,7 +37,7 @@ system legible as it grows, and it makes the OS its own best teaching tool.
 
 ## Scope
 
-We build incrementally and keep building. There is no fixed feature ceiling —
+We build in small steps and keep building. There is no fixed feature ceiling —
 the project goes as far as it stays interesting and instructive.
 
 Deliberately **out of scope**, at least for a long time:
@@ -81,15 +81,15 @@ peekos/
 
 ## Roadmap
 
-Rough sequence. Each step is a reviewable increment and ends with something you
-can see.
+Rough sequence. Each step is small enough to review in one pull request and
+ends with something you can see.
 
 1. **Scaffold** — workspace, pinned toolchain, this doc. Kernel compiles for
-   bare metal and defines its entry point. *(current)*
+   bare metal and defines its entry point. *(done)*
 2. **Boot & print** — `bootloader` wired into xtask, panic handler, serial
-   output. `cargo xtask run` boots PeekOS in QEMU and prints a banner.
-3. **Dev loop** — xtask launches QEMU directly; a boot smoke test; CI runs it
-   headless on every push.
+   output. `cargo xtask run` boots PeekOS in QEMU and prints a banner. *(done)*
+3. **Dev loop** — a self-terminating `cargo xtask test`; CI runs it headless on
+   every pull request.
 4. **The `peek>` shell** — read serial input, a command loop. The lens for
    everything after.
 5. **CPU exceptions** — an interrupt descriptor table; `peek irq` shows counts.

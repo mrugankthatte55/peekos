@@ -1,7 +1,7 @@
 //! The PeekOS kernel.
 //!
-//! Increment 2: boots under QEMU and prints a banner over the serial console.
-//! Then it has nothing to do, so it halts.
+//! Boots under QEMU and prints a banner over the serial console, then halts —
+//! there is nothing else for it to do yet.
 
 #![no_std]
 #![no_main]
@@ -20,7 +20,7 @@ entry_point!(kernel_main);
 fn kernel_main(_boot_info: &'static mut BootInfo) -> ! {
     // The bootloader hands off with interrupts enabled. We have no interrupt
     // descriptor table yet, so the first timer tick would fault straight into
-    // a triple fault — mask IRQs until we build an IDT (increment 5).
+    // a triple fault — keep them masked until the kernel builds an IDT.
     unsafe { core::arch::asm!("cli", options(nomem, nostack)) }
 
     serial::init();
